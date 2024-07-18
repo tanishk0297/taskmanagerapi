@@ -11,6 +11,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 origins = [
+    "https://taskmanager.tanishk.me",
     "http://localhost:3000",
 ]
 
