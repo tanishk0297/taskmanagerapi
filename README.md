@@ -17,6 +17,9 @@ created_at (datetime)
 
 
 ## Setup Instructions
+## Requirements
+
+- Python (3.8.0)
 
 ### Backend (FastAPI)
 
@@ -35,4 +38,11 @@ created_at (datetime)
 
 3. ```bash
    uvicorn main:app --host 0.0.0.0 --port 8000
+   ```
+   or
+   ```bash
+   python3 venv venv
+   venv\Scripts\activate
+   uvicorn main:app --reload
+   ```
 
