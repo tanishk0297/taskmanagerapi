@@ -29,7 +29,7 @@ created_at (datetime)
 2. **Install Dependencies:**
 
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirement.txt
    
 2. **Run the FastAPI Server:**
 
