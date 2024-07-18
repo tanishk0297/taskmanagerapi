@@ -1,8 +1,20 @@
-# Project Name
+# Task Manager (FastAPI + SQLAlchemy ORM)
 
 ## Overview
 
-Describe your project briefly here, including its purpose, features, and any key points you want to highlight.
+FastAPI application with the following endpoints:
+GET /api/tasks: Retrieve all tasks
+POST /api/tasks: Create a new task
+PUT /api/tasks/{task_id}: Update a task's status
+DELETE /api/tasks/{task_id}: Delete a task
+
+SQLAlchemy ORM to create a Task model with the following fields:
+id (primary key)
+title (string)
+description (string)
+status (string: "todo", "in_progress", or "done")
+created_at (datetime)
+
 
 ## Setup Instructions
 
