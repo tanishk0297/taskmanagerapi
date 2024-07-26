@@ -17,5 +17,6 @@ class Task(Base):
     userid = Column(Integer) 
     title = Column(String, index=True)
     description = Column(String, index=True)
+    filename = Column(String, index=True)    
     status = Column(String, default="todo")
     created_at = Column(DateTime, default=datetime.utcnow)

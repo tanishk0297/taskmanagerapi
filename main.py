@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -25,6 +25,7 @@ class TaskCreate(BaseModel):
     title: str
     description: str
     userdata: int
+    uploadfile: UploadFile
 
 class TaskUpdate(BaseModel):
     status: str
@@ -49,7 +50,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.username == user.username).first()
     if not db_user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
-    if db_user.password!= user.password:
+    if db_user.password != user.password:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     
     return {"id": db_user.id, "username": db_user.username}
@@ -68,19 +69,24 @@ def read_tasks(user_id: int, db: Session = Depends(get_db)):
     return tasks
 
 @app.post("/api/tasks/")
-def create_task(task: TaskCreate, db: Session = Depends(get_db)):
+async def create_task(task: TaskCreate, db: Session = Depends(get_db)):
     print("Create Task Endpoint Called")
     print(task)
     try:
-        db_task = Task(title=task.title, description=task.description, userid=task.userdata)
+        contents = await task.uploadfile.read()
+        with open(f"uploads/{task.uploadfile.filename}", "wb") as f:
+            f.write(contents)
+        
+        db_task = Task(title=task.title, description=task.description, userid=task.userdata, filename=task.uploadfile.filename)
         db.add(db_task)
         db.commit()
         db.refresh(db_task)
+        
         return db_task
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
-
+    
 @app.put("/api/tasks/{task_id}")
 def update_task(task_id: int, task: TaskUpdate, db: Session = Depends(get_db)):
     db_task = db.query(Task).filter(Task.id == task_id).first()
