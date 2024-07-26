@@ -34,7 +34,9 @@ class TaskUpdate(BaseModel):
 class UserCreate(BaseModel):
     username: str
     password: str
-
+class UserLogin(BaseModel):
+    username: str
+    password: str
 def get_db():
     db = SessionLocal()
     try:
@@ -45,14 +47,14 @@ def get_db():
 
 
 @app.post("/api/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == form_data.username).first()
-    if not user:
+def login(user: UserLogin, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.username == user.username).first()
+    if not db_user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
-    if user.password != form_data.password:
+    if db_user.password != user.password:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     
-    return {"Id": user.id, "Username":user.username, "message": "Login successful"}
+    return {"id": db_user.id, "username": db_user.username}
 
 @app.post("/api/signup")
 def signup(user: UserCreate, db: Session = Depends(get_db)):
