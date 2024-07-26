@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from database import SessionLocal, engine
-from models import Base, Task
+from models import Base, Task , User
 
 
 Base.metadata.create_all(bind=engine)
@@ -30,12 +30,24 @@ class TaskCreate(BaseModel):
 class TaskUpdate(BaseModel):
     status: str
 
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+@app.post("/api/signup")
+def signup(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = User(username=user.username, password=user.password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
 @app.get("/api/tasks")
 def read_tasks(db: Session = Depends(get_db)):
