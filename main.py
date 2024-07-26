@@ -71,8 +71,8 @@ def read_tasks(user_id: int, db: Session = Depends(get_db)):
     return tasks
 
 @app.post("/api/tasks/{user_id}")
-def create_task(user_id: int, task: TaskCreate, db: Session = Depends(get_db)):
-    db_task = Task(title=task.title, description=task.description, userid=user_id)
+def create_task(user_id, task: TaskCreate, db: Session = Depends(get_db)):
+    db_task = Task(title=task.title, description=task.description, userid= user_id)
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
