@@ -6,10 +6,6 @@ from database import SessionLocal, engine
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from models import Base, Task, User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
-Base.metadata.create_all(bind=engine)
-
 app = FastAPI()
 
 origins = [
@@ -53,7 +49,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.username == user.username).first()
     if not db_user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
-    if db_user.password != user.password:
+    if db_user.password!= user.password:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     
     return {"id": db_user.id, "username": db_user.username}
@@ -73,11 +69,17 @@ def read_tasks(user_id: int, db: Session = Depends(get_db)):
 
 @app.post("/api/tasks/")
 def create_task(task: TaskCreate, db: Session = Depends(get_db)):
-    db_task = Task(title=task.title, description=task.description, userid= task.userdata)
-    db.add(db_task)
-    db.commit()
-    db.refresh(db_task)
-    return db_task
+    print("Create Task Endpoint Called")
+    print(task)
+    try:
+        db_task = Task(title=task.title, description=task.description, userid=task.userdata)
+        db.add(db_task)
+        db.commit()
+        db.refresh(db_task)
+        return db_task
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @app.put("/api/tasks/{task_id}")
 def update_task(task_id: int, task: TaskUpdate, db: Session = Depends(get_db)):
