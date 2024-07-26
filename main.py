@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from database import SessionLocal, engine
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from models import Base, Task , User
+from models import Base, Task, User
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 Base.metadata.create_all(bind=engine)
@@ -34,17 +35,17 @@ class TaskUpdate(BaseModel):
 class UserCreate(BaseModel):
     username: str
     password: str
+
 class UserLogin(BaseModel):
     username: str
     password: str
+
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-
-
 
 @app.post("/api/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
@@ -64,15 +65,14 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
-
-@app.get("/api/tasks")
-def read_tasks(db: Session = Depends(get_db)):
-    tasks = db.query(Task).all()
+@app.get("/api/tasks/{user_id}")
+def read_tasks(user_id: int, db: Session = Depends(get_db)):
+    tasks = db.query(Task).filter(Task.userid == user_id).all()
     return tasks
 
-@app.post("/api/tasks")
-def create_task(task: TaskCreate, db: Session = Depends(get_db)):
-    db_task = Task(title=task.title, description=task.description)
+@app.post("/api/tasks/{user_id}")
+def create_task(user_id: int, task: TaskCreate, db: Session = Depends(get_db)):
+    db_task = Task(title=task.title, description=task.description, userid=user_id)
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
