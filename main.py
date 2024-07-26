@@ -28,6 +28,7 @@ app.add_middleware(
 class TaskCreate(BaseModel):
     title: str
     description: str
+    userdata: int
 
 class TaskUpdate(BaseModel):
     status: str
