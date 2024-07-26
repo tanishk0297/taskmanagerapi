@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, File, UploadFile
+from fastapi import FastAPI, Depends, HTTPException, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -68,16 +68,17 @@ def read_tasks(user_id: int, db: Session = Depends(get_db)):
     tasks = db.query(Task).filter(Task.userid == user_id).all()
     return tasks
 
+
 @app.post("/api/tasks/")
-async def create_task(task: TaskCreate, db: Session = Depends(get_db)):
+async def create_task(title: str = Form(...), description: str = Form(...), userdata: int = Form(...), uploadfile: UploadFile = File(...), db: Session = Depends(get_db)):
     print("Create Task Endpoint Called")
-    print(task)
+    print(title, description, userdata, uploadfile)
     try:
-        contents = await task.uploadfile.read()
-        with open(f"uploads/{task.uploadfile.filename}", "wb") as f:
+        contents = await uploadfile.read()
+        with open(f"uploads/{uploadfile.filename}", "wb") as f:
             f.write(contents)
         
-        db_task = Task(title=task.title, description=task.description, userid=task.userdata, filename=task.uploadfile.filename)
+        db_task = Task(title=title, description=description, userid=userdata, filename=uploadfile.filename)
         db.add(db_task)
         db.commit()
         db.refresh(db_task)
@@ -86,7 +87,7 @@ async def create_task(task: TaskCreate, db: Session = Depends(get_db)):
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
-    
+     
 @app.put("/api/tasks/{task_id}")
 def update_task(task_id: int, task: TaskUpdate, db: Session = Depends(get_db)):
     db_task = db.query(Task).filter(Task.id == task_id).first()
