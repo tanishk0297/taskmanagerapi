@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from database import SessionLocal, engine
@@ -21,11 +23,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 class TaskCreate(BaseModel):
     title: str
     description: str
     userdata: int
-    uploadfile: UploadFile
 
 class TaskUpdate(BaseModel):
     status: str
@@ -68,7 +71,6 @@ def read_tasks(user_id: int, db: Session = Depends(get_db)):
     tasks = db.query(Task).filter(Task.userid == user_id).all()
     return tasks
 
-
 @app.post("/api/tasks/")
 async def create_task(title: str = Form(...), description: str = Form(...), userdata: int = Form(...), uploadfile: UploadFile = File(...), db: Session = Depends(get_db)):
     print("Create Task Endpoint Called")
@@ -87,7 +89,7 @@ async def create_task(title: str = Form(...), description: str = Form(...), user
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
-     
+    
 @app.put("/api/tasks/{task_id}")
 def update_task(task_id: int, task: TaskUpdate, db: Session = Depends(get_db)):
     db_task = db.query(Task).filter(Task.id == task_id).first()
@@ -106,3 +108,7 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
     db.delete(db_task)
     db.commit()
     return {"message": "Task deleted successfully"}
+
+@app.get("/uploads/{filename}")
+def read_upload_file(filename: str):
+    return FileResponse(f"uploads/{filename}")
