@@ -3,8 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from database import SessionLocal, engine
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from models import Base, Task , User
-
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 Base.metadata.create_all(bind=engine)
 
@@ -41,6 +42,18 @@ def get_db():
     finally:
         db.close()
 
+
+
+@app.post("/api/login")
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == form_data.username).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    if user.password != form_data.password:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    
+    return {"Id": user.id, "Username":user.username, "message": "Login successful"}
+
 @app.post("/api/signup")
 def signup(user: UserCreate, db: Session = Depends(get_db)):
     db_user = User(username=user.username, password=user.password)
@@ -48,6 +61,7 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_user)
     return db_user
+
 
 @app.get("/api/tasks")
 def read_tasks(db: Session = Depends(get_db)):
