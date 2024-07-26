@@ -70,9 +70,9 @@ def read_tasks(user_id: int, db: Session = Depends(get_db)):
     tasks = db.query(Task).filter(Task.userid == user_id).all()
     return tasks
 
-@app.post("/api/tasks/{user_id}")
-def create_task(user_id, task: TaskCreate, db: Session = Depends(get_db)):
-    db_task = Task(title=task.title, description=task.description, userid= user_id)
+@app.post("/api/tasks/")
+def create_task(task: TaskCreate, db: Session = Depends(get_db)):
+    db_task = Task(title=task.title, description=task.description, userid= task.userdata)
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
